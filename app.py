@@ -87,19 +87,31 @@ st.markdown(
             padding: 10px 14px;
         }
 
-        .cs-logo-row {
+        .cs-header-row {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 4px;
+            gap: 16px;
+            margin-top: 4px;
+            margin-bottom: 8px;
         }
-        .cs-logo-row img {
-            height: 34px;
+        .cs-header-row img {
+            height: 64px;
         }
-        .cs-logo-row span {
-            font-size: 1.35rem;
-            font-weight: 700;
+        .cs-header-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .cs-header-text .cs-title {
+            font-size: 2rem;
+            font-weight: 800;
             color: #1F2430;
+            line-height: 1.1;
+        }
+        .cs-header-text .cs-tagline {
+            font-size: 0.95rem;
+            color: #6B7280;
+            margin-top: 2px;
         }
     </style>
     """,
@@ -136,16 +148,8 @@ def is_solved(qid):
 # Sidebar navigation
 # ----------------------------------------------------------------------------
 with st.sidebar:
-    logo_uri = _logo_data_uri()
-    if logo_uri:
-        st.markdown(
-            f"<div class='cs-logo-row'><img src='{logo_uri}'/><span>CodeSprint</span></div>",
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown("## CodeSprint")
-    st.caption("Race Through Challenges. Master Every Problem.")
-    st.divider()
+    st.markdown("<div style='margin-top:6px;'></div>", unsafe_allow_html=True)
+    st.caption("NAVIGATION")
 
     if st.button("Problems", use_container_width=True):
         go_to("problems")
@@ -155,12 +159,36 @@ with st.sidebar:
         go_to("submissions")
 
     st.divider()
+    st.caption("OVERVIEW")
     all_qs = load_questions()
     solved_count = sum(1 for q in all_qs if is_solved(q["id"]))
     c1, c2 = st.columns(2)
     c1.metric("Problems", len(all_qs))
     c2.metric("Solved", solved_count)
 
+
+# ----------------------------------------------------------------------------
+# Main-area header (logo + name + tagline) — lives above the page content,
+# not inside the collapsible sidebar, so it's always visible.
+# ----------------------------------------------------------------------------
+def render_header():
+    logo_uri = _logo_data_uri()
+    if logo_uri:
+        st.markdown(
+            f"""
+            <div class='cs-header-row'>
+                <img src='{logo_uri}'/>
+                <div class='cs-header-text'>
+                    <div class='cs-title'>CodeSprint</div>
+                    <div class='cs-tagline'>Race Through Challenges. Master Every Problem.</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown("# CodeSprint")
+        st.caption("Race Through Challenges. Master Every Problem.")
     st.divider()
 
 
@@ -516,6 +544,17 @@ def render_solve_coding(q):
         st.markdown("#### Solution Editor")
         lang = st.selectbox("Language", get_supported_languages(), index=0, key=f"lang_{qid}")
 
+        # streamlit_ace's editor only applies the `value` argument the very
+        # first time a given widget `key` is mounted; on later reruns it
+        # behaves like an uncontrolled text editor and keeps whatever the
+        # user has typed, ignoring new `value`s. So to truly reset the
+        # editor back to the original starter code, we can't just change the
+        # stored value — we have to mount a brand-new widget instance by
+        # changing its key. We track a small per-question "version" counter
+        # for exactly this purpose.
+        st.session_state.setdefault("ace_version", {})
+        ace_version = st.session_state.ace_version.get(qid, 0)
+
         current_code = st.session_state.editor_code.get(qid, q["starter_code"])
         new_code = st_ace(
             value=current_code,
@@ -526,7 +565,7 @@ def render_solve_coding(q):
             show_gutter=True,
             wrap=False,
             auto_update=True,
-            key=f"ace_{qid}",
+            key=f"ace_{qid}_{ace_version}",
             height=350,
         )
         st.session_state.editor_code[qid] = new_code
@@ -538,6 +577,12 @@ def render_solve_coding(q):
 
         if reset_clicked:
             st.session_state.editor_code[qid] = q["starter_code"]
+            # Bump the version so the Ace editor gets a fresh widget key and
+            # therefore fully remounts with the original starter code.
+            st.session_state.ace_version[qid] = ace_version + 1
+            # Clean up the old widget's stored state so it doesn't linger
+            # forever in session_state across a long session.
+            st.session_state.pop(f"ace_{qid}_{ace_version}", None)
             st.rerun()
 
         if run_clicked:
@@ -631,6 +676,8 @@ def render_submissions():
 # ----------------------------------------------------------------------------
 # Router
 # ----------------------------------------------------------------------------
+render_header()
+
 view = st.session_state.view
 if view == "problems":
     render_problems()
