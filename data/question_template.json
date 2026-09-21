@@ -1,0 +1,35 @@
+[
+  {
+    "id": "unique-question-id",
+    "title": "Human Readable Title",
+    "difficulty": "Easy",
+    "type": "coding",
+    "tags": ["Topic1", "Topic2"],
+    "description": "Full problem statement. Markdown is supported: **bold**, `code`, lists, etc.\n\n### Input Format\nDescribe the input.\n\n### Output Format\nDescribe the expected output.\n\n### Sample Input\n```\n...\n```\n\n### Sample Output\n```\n...\n```",
+    "starter_code": "# Starter code shown to the user in the editor\n",
+    "time_limit": 5,
+    "points": 5,
+    "explanation": "Optional: shown to the user after they submit/run (may contain spoilers).",
+    "test_cases": [
+      {"input": "sample stdin", "expected_output": "expected stdout", "hidden": false},
+      {"input": "hidden test stdin", "expected_output": "expected stdout", "hidden": true}
+    ]
+  },
+  {
+    "id": "unique-mcq-id",
+    "title": "Human Readable MCQ Title",
+    "difficulty": "Medium",
+    "type": "mcq",
+    "tags": ["Topic1"],
+    "description": "The question text. Markdown/code blocks are supported.",
+    "options": [
+      {"label": "A", "text": "First choice"},
+      {"label": "B", "text": "Second choice"},
+      {"label": "C", "text": "Third choice"},
+      {"label": "D", "text": "Fourth choice"}
+    ],
+    "correct_answer": "B",
+    "explanation": "Shown to the user after they submit their answer.",
+    "points": 5
+  }
+]
