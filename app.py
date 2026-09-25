@@ -1298,7 +1298,7 @@ def render_reviewer_dashboard():
         st.warning(f"No submissions found for '{search.strip()}'.")
         return
 
-    with st.expander("⚠️ Remove this candidate from the database"):
+    with st.expander("⚠️ Remove candidate from records"):
         st.write(
             f"This permanently deletes all {len(rows)} submission(s) for "
             f"'{search.strip()}'. This cannot be undone."
